@@ -135,25 +135,33 @@ export async function initializeServices(): Promise<void> {
     await runMigrations();
 
     // Initialize Elasticsearch (non-fatal if unavailable)
-    await initElasticsearch();
+    try { await initElasticsearch(); } catch (e: any) {
+      logger.warn('Elasticsearch init failed (non-fatal)', { error: e.message });
+    }
 
-    // Initialize default Ethereal email account
-    await initDefaultEmailAccount();
+    // Initialize default Ethereal email account (non-fatal)
+    try { await initDefaultEmailAccount(); } catch (e: any) {
+      logger.warn('Ethereal email init failed (non-fatal)', { error: e.message });
+    }
 
-    // Run boot reconciliation for missing pending jobs
-    await reconcilePendingJobs();
+    // Run boot reconciliation for missing pending jobs (non-fatal)
+    try { await reconcilePendingJobs(); } catch (e: any) {
+      logger.warn('Reconciliation failed (non-fatal)', { error: e.message });
+    }
 
     // Start BullMQ worker (if Redis available and not in pure serverless environment)
-    if (!process.env.DISABLE_WORKER) {
+    if (!process.env.DISABLE_WORKER && !process.env.VERCEL && !process.env.NEXT_RUNTIME) {
       startEmailWorker();
     }
 
     isInitialized = true;
   } catch (err: any) {
     logger.error('Failed to initialize services', { error: err.message, stack: err.stack });
-    if (!process.env.VERCEL) {
+    if (!process.env.VERCEL && !process.env.NEXT_RUNTIME) {
       process.exit(1);
     }
+    // In serverless, allow partial initialization so basic routes still work
+    isInitialized = true;
   }
 }
 

@@ -1,11 +1,15 @@
 import 'dotenv/config';
 import dns from 'dns';
-import express from 'express';
 
-// Ensure DNS resolves modern cloud endpoints reliably across environments
+// Ensure DNS resolves modern cloud endpoints reliably across local and serverless environments
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (_) {}
 try {
   dns.setDefaultResultOrder('ipv4first');
 } catch (_) {}
+
+import express from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import cors from 'cors';

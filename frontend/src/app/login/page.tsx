@@ -6,8 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { FullPageLoader } from '@/components/ui/LoadingState';
 import { ArrowLeft, AlertCircle, ShieldCheck, Lock, Sparkles } from 'lucide-react';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { API_BASE } from '@/lib/api';
 
 function LoginContent() {
   const { user, loading } = useAuth();

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
-import { slackApi } from '@/lib/api';
+import { slackApi, API_BASE } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { FullPageLoader } from '@/components/ui/LoadingState';
@@ -15,8 +15,6 @@ import {
   AlertCircle,
   ExternalLink,
 } from 'lucide-react';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export default function IntegrationsPage() {
   const { user, loading: authLoading } = useAuth();

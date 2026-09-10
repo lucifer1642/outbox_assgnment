@@ -9,7 +9,10 @@ import type {
   RateLimitStatus,
 } from '@/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? process.env.NEXT_PUBLIC_API_URL
+    : (typeof window !== 'undefined' ? '' : 'http://localhost:4000');
 
 export const api = axios.create({
   baseURL: API_BASE,

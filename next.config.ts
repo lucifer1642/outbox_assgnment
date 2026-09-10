@@ -29,8 +29,20 @@ const nextConfig: NextConfig = {
     'uuid',
     'express-rate-limit',
   ],
-  // Ensure backend TypeScript is transpiled
-  transpilePackages: [],
+  outputFileTracingIncludes: {
+    '/api/**/*': ['./backend/dist/**/*'],
+  },
+  async rewrites() {
+    return [
+      { source: '/auth/:path*', destination: '/api/auth/:path*' },
+      { source: '/emails/:path*', destination: '/api/emails/:path*' },
+      { source: '/slack/:path*', destination: '/api/slack/:path*' },
+      { source: '/campaigns/:path*', destination: '/api/campaigns/:path*' },
+      { source: '/admin/:path*', destination: '/api/admin/:path*' },
+      { source: '/health', destination: '/api/health' },
+      { source: '/me', destination: '/api/me' },
+    ];
+  },
 };
 
 export default nextConfig;

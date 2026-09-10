@@ -5,6 +5,8 @@ import dns from 'dns';
 try { dns.setServers(['8.8.8.8', '1.1.1.1']); } catch (_) {}
 try { dns.setDefaultResultOrder('ipv4first'); } catch (_) {}
 
+declare const __non_webpack_require__: any;
+
 let expressApp: any = null;
 let initialized = false;
 let initPromise: Promise<void> | null = null;
@@ -14,8 +16,17 @@ async function getApp() {
 
   if (!initPromise) {
     initPromise = (async () => {
-      // Import the compiled backend
-      const backend = require('../../../../backend/dist/index');
+      const dynamicRequire = typeof __non_webpack_require__ !== 'undefined' 
+        ? __non_webpack_require__ 
+        : require;
+      
+      let backend: any;
+      try {
+        backend = dynamicRequire('../../../../backend/dist/index');
+      } catch (err) {
+        const path = dynamicRequire('path');
+        backend = dynamicRequire(path.resolve(process.cwd(), 'backend/dist/index'));
+      }
       expressApp = backend.default || backend;
 
       // Initialize services (DB, Redis, etc.)
@@ -210,10 +221,11 @@ async function expressToNext(
 
 async function handler(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  context: { params: Promise<{ path?: string[] }> }
 ) {
-  const { path } = await params;
-  const fullPath = path.join('/');
+  const params = await context.params;
+  const pathParts = params?.path || [];
+  const fullPath = pathParts.join('/');
 
   try {
     const app = await getApp();

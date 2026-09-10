@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm install --prefix backend && cd backend && npx tsc -p tsconfig.json && cd .. && next build",
     "start": "next start",
     "lint": "eslint",
     "backend:dev": "ts-node-dev --respawn --transpile-only backend/src/index.ts",

@@ -187,6 +187,9 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-start();
+// Only start standalone server when not imported as a module by Next.js
+if (!process.env.NEXT_RUNTIME && require.main === module) {
+  start();
+}
 
 export default app;

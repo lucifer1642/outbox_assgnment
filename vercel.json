@@ -1,12 +1,3 @@
 {
-  "version": 2,
-  "buildCommand": "npm run build --prefix backend && npm run build --prefix frontend",
-  "outputDirectory": "frontend/.next",
-  "rewrites": [
-    { "source": "/auth/:path*", "destination": "/api/index" },
-    { "source": "/emails/:path*", "destination": "/api/index" },
-    { "source": "/slack/:path*", "destination": "/api/index" },
-    { "source": "/admin/:path*", "destination": "/api/index" },
-    { "source": "/health", "destination": "/api/index" }
-  ]
+  "version": 2
 }

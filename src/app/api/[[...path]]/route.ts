@@ -1,44 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Readable } from 'stream';
+import expressApp, { initializeServices } from '../../../../backend/dist/index';
 
 // DNS fix for Neon/Upstash in serverless
 import dns from 'dns';
 try { dns.setServers(['8.8.8.8', '1.1.1.1']); } catch (_) {}
 try { dns.setDefaultResultOrder('ipv4first'); } catch (_) {}
 
-declare const __non_webpack_require__: any;
-
-let expressApp: any = null;
 let initialized = false;
 let initPromise: Promise<void> | null = null;
 
-async function getApp() {
-  if (expressApp && initialized) return expressApp;
+async function ensureInitialized() {
+  if (initialized) return;
 
   if (!initPromise) {
     initPromise = (async () => {
-      const dynamicRequire = typeof __non_webpack_require__ !== 'undefined' 
-        ? __non_webpack_require__ 
-        : require;
-      
-      let backend: any;
-      try {
-        backend = dynamicRequire('../../../../backend/dist/index');
-      } catch (err) {
-        const path = dynamicRequire('path');
-        backend = dynamicRequire(path.resolve(process.cwd(), 'backend/dist/index'));
-      }
-      expressApp = backend.default || backend;
-
-      // Initialize services (DB, Redis, etc.)
-      if (typeof backend.initializeServices === 'function') {
-        await backend.initializeServices();
+      if (typeof initializeServices === 'function') {
+        await initializeServices();
       }
       initialized = true;
     })();
   }
 
   await initPromise;
-  return expressApp;
 }
 
 // Simple Express-to-NextResponse adapter
@@ -48,7 +32,6 @@ async function expressToNext(
   path: string
 ): Promise<NextResponse> {
   const url = new URL(request.url);
-  const { Readable } = require('stream');
 
   // Build a minimal IncomingMessage-like object
   const req = new Readable() as any;
@@ -228,8 +211,8 @@ async function handler(
   const fullPath = pathParts.join('/');
 
   try {
-    const app = await getApp();
-    return await expressToNext(app, request, fullPath);
+    await ensureInitialized();
+    return await expressToNext(expressApp, request, fullPath);
   } catch (error: any) {
     console.error('API route error:', error);
     return NextResponse.json(

@@ -34,7 +34,15 @@ api.interceptors.request.use((reqConfig) => {
 
 export const authApi = {
   getMe: (): Promise<{ authenticated: boolean; user?: User }> =>
-    api.get('/auth/me').then((r) => r.data),
+    api
+      .get('/auth/me')
+      .then((r) => r.data)
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          return { authenticated: false };
+        }
+        throw err;
+      }),
 
   logout: (): Promise<{ success: boolean }> =>
     api.post('/auth/logout').then((r) => r.data),
@@ -103,8 +111,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Redirect to login if not authenticated
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      const isPublicPath = currentPath === '' || currentPath === '/' || currentPath.startsWith('/login');
+      const isAuthCheck = error.config?.url?.includes('/auth/me');
+
+      if (typeof window !== 'undefined' && !isPublicPath && !isAuthCheck) {
         window.location.href = '/login';
       }
     }

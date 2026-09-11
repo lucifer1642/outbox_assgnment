@@ -38,10 +38,13 @@ export const metadata: Metadata = {
   },
 };
 
+import { RenderWarmer } from '@/providers/RenderWarmer';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="antialiased min-h-screen">
+        <RenderWarmer />
         <ReactQueryProvider>
           <AuthProvider>
             <ToastProvider>

@@ -99,5 +99,15 @@ export async function runMigrations(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_email_jobs_campaign_id ON email_jobs(campaign_id);
   `);
 
+  // User sessions table for connect-pg-simple session store
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      sid VARCHAR NOT NULL PRIMARY KEY,
+      sess JSON NOT NULL,
+      expire TIMESTAMPTZ NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_user_sessions_expire ON user_sessions(expire);
+  `);
+
   logger.info('Database migrations completed successfully');
 }

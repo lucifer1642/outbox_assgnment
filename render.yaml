@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: outbox-backend
+    name: outbox-assgnment
     runtime: node
     rootDir: backend
     region: oregon

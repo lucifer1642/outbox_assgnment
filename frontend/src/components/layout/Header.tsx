@@ -107,37 +107,35 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.97 }}
                   transition={{ duration: 0.15, ease: 'easeOut' }}
-                  className="absolute right-0 mt-2 w-60 rounded-2xl shadow-2xl overflow-hidden z-50 glass-strong"
-                  style={{ border: '1px solid var(--glass-border-strong)' }}
+                  className="absolute right-0 mt-2 w-64 rounded-2xl shadow-2xl overflow-hidden z-50 bg-[#131620]/95 backdrop-blur-2xl border border-white/[0.12]"
                 >
                   {/* User info */}
-                  <div className="px-4 py-3.5 border-b border-white/[0.06]">
+                  <div className="px-4 py-3.5 border-b border-white/[0.08] bg-white/[0.02]">
                     <p className="text-sm font-semibold text-white truncate" style={{ fontFamily: 'var(--font-display)' }}>{user.name}</p>
-                    <p className="text-xs text-white/40 truncate font-mono mt-0.5">{user.email}</p>
+                    <p className="text-xs text-[#98a0ae] truncate font-mono mt-0.5">{user.email}</p>
                   </div>
 
                   {/* Menu items */}
-                  <div className="py-1">
+                  <div className="p-1.5 space-y-1">
                     <Link
                       href="/settings/integrations"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-white/75 hover:text-white hover:bg-white/[0.04] transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#f3f4f7] hover:bg-white/[0.06] transition-colors"
                     >
-                      <Settings size={14} className="text-white/40" />
-                      Settings &amp; Integrations
+                      <Settings size={14} className="text-[#8b7cff]" />
+                      <span>Settings &amp; Integrations</span>
                     </Link>
                   </div>
 
                   {/* Logout */}
-                  <div className="border-t border-white/[0.06] py-1">
+                  <div className="border-t border-white/[0.08] p-1.5">
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
                         handleLogout();
                       }}
                       disabled={isLoggingOut}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-medium transition-colors disabled:opacity-50 text-left"
-                      style={{ color: 'var(--coral)' }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors hover:bg-red-500/10 text-red-400 disabled:opacity-50 text-left cursor-pointer"
                     >
                       {isLoggingOut ? (
                         <svg className="animate-spin h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
@@ -145,9 +143,9 @@ export function Header() {
                           <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
                       ) : (
-                        <LogOut size={14} style={{ color: 'var(--coral)', opacity: 0.7 }} />
+                        <LogOut size={14} className="text-red-400" />
                       )}
-                      {isLoggingOut ? 'Signing out…' : 'Sign out'}
+                      <span>{isLoggingOut ? 'Signing out…' : 'Sign out'}</span>
                     </button>
                   </div>
                 </motion.div>

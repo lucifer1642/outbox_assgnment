@@ -20,6 +20,16 @@ export const api = axios.create({
   },
 });
 
+api.interceptors.request.use((reqConfig) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('reachinbox_auth_token');
+    if (token) {
+      reqConfig.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return reqConfig;
+});
+
 // ─── Auth ──────────────────────────────────────────────────────────────────
 
 export const authApi = {

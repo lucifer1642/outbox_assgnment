@@ -28,7 +28,7 @@ import { initDefaultEmailAccount } from './services/emailService';
 import { initElasticsearch } from './services/elasticsearchService';
 import { emailQueue } from './queues/emailQueue';
 import { startEmailWorker } from './queues/emailWorker';
-import { errorHandler } from './middleware/auth';
+import { errorHandler, authenticateToken } from './middleware/auth';
 
 import { reconcilePendingJobs } from './services/reconciliationService';
 
@@ -38,8 +38,8 @@ import slackRoutes from './routes/slack';
 
 const app = express();
 
-// ─── Trust Proxy (Required for Vercel / Reverse Proxies) ───────────────────
-app.set('trust proxy', 1);
+// ─── Trust Proxy (Required for Render, Vercel & Reverse Proxies) ────────────
+app.set('trust proxy', true);
 
 // ─── Security & Parsing ────────────────────────────────────────────────────
 
@@ -47,8 +47,8 @@ app.use(helmet({
   contentSecurityPolicy: false, // Disabled for bull-board
 }));
 
-const isProduction = config.nodeEnv === 'production';
-const isCrossDomain = isProduction && config.frontendUrl && !config.frontendUrl.includes('localhost');
+const isProduction = config.nodeEnv === 'production' || process.env.NODE_ENV === 'production';
+const isCrossDomain = Boolean(config.frontendUrl && !config.frontendUrl.includes('localhost'));
 
 app.use(cors({
   origin: config.frontendUrl || true,
@@ -73,19 +73,21 @@ app.use(session({
   secret: config.sessionSecret,
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
-    secure: isProduction,
+    secure: isProduction || isCrossDomain,
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: isProduction ? (isCrossDomain ? 'none' : 'lax') : 'lax',
+    sameSite: isCrossDomain ? 'none' : 'lax',
   },
 }));
 
-// ─── Passport ─────────────────────────────────────────────────────────────
+// ─── Passport & Auth ────────────────────────────────────────────────────────
 
 setupPassport();
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(authenticateToken);
 
 // ─── BullMQ Dashboard (Bull Board) ────────────────────────────────────────
 

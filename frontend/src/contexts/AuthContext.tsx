@@ -19,10 +19,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const urlToken = params.get('token');
+        if (urlToken) {
+          localStorage.setItem('reachinbox_auth_token', urlToken);
+          params.delete('token');
+          const cleanSearch = params.toString();
+          const cleanUrl = window.location.pathname + (cleanSearch ? `?${cleanSearch}` : '');
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      }
+
       const data = await authApi.getMe();
-      setUser(data.authenticated && data.user ? data.user : null);
+      if (data.authenticated && data.user) {
+        setUser(data.user);
+      } else {
+        setUser(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('reachinbox_auth_token');
+        }
+      }
     } catch {
       setUser(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('reachinbox_auth_token');
+      }
     }
   }, []);
 
@@ -31,9 +53,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser]);
 
   const logout = useCallback(async () => {
-    await authApi.logout();
-    setUser(null);
-    window.location.href = '/login';
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('reachinbox_auth_token');
+      }
+      setUser(null);
+      window.location.href = '/login';
+    }
   }, []);
 
   return (

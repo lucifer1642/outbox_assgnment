@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import passport from 'passport';
 import { config } from '../config';
+import { signToken, AuthenticatedUser } from '../middleware/auth';
 
 const router = Router();
 
@@ -23,7 +24,7 @@ router.get(
     if (!req.query.code) {
       return res.redirect(`${config.frontendUrl}/login?error=missing_code`);
     }
-    passport.authenticate('google', (err: any, user: any, info: any) => {
+    passport.authenticate('google', (err: any, user: any) => {
       if (err) {
         console.error('Google OAuth callback error:', err);
         return res.redirect(`${config.frontendUrl}/login?error=oauth_error&message=${encodeURIComponent(err.message || 'error')}`);
@@ -36,7 +37,22 @@ router.get(
           console.error('Session login error:', loginErr);
           return res.redirect(`${config.frontendUrl}/login?error=session_error`);
         }
-        return res.redirect(`${config.frontendUrl}/dashboard`);
+
+        const token = signToken({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          avatarUrl: user.avatarUrl || user.avatar_url,
+          slackAccessToken: user.slackAccessToken || user.slack_access_token,
+          exp: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        });
+
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('Session save error:', saveErr);
+          }
+          return res.redirect(`${config.frontendUrl}/dashboard?token=${encodeURIComponent(token)}`);
+        });
       });
     })(req, res, next);
   }
@@ -44,23 +60,28 @@ router.get(
 
 // Get current user info (/me alias)
 router.get('/me', (req: Request, res: Response) => {
-  if (!req.isAuthenticated()) {
+  const isAuthed = (req.isAuthenticated && req.isAuthenticated()) || Boolean(req.user);
+  if (!isAuthed || !req.user) {
     return res.status(401).json({ authenticated: false });
   }
   const user = req.user as any;
   res.json({
-    id: user.id,
-    googleId: user.googleId || user.google_id,
-    email: user.email,
-    name: user.name,
-    avatarUrl: user.avatarUrl || user.avatar_url,
-    slackConnected: !!user.slackAccessToken,
+    authenticated: true,
+    user: {
+      id: user.id,
+      googleId: user.googleId || user.google_id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl || user.avatar_url,
+      slackConnected: Boolean(user.slackAccessToken || user.slack_access_token),
+    },
   });
 });
 
 // Get current user info
 router.get('/auth/me', (req: Request, res: Response) => {
-  if (!req.isAuthenticated()) {
+  const isAuthed = (req.isAuthenticated && req.isAuthenticated()) || Boolean(req.user);
+  if (!isAuthed || !req.user) {
     return res.status(401).json({ authenticated: false });
   }
   const user = req.user as any;
@@ -70,8 +91,8 @@ router.get('/auth/me', (req: Request, res: Response) => {
       id: user.id,
       email: user.email,
       name: user.name,
-      avatarUrl: user.avatarUrl,
-      slackConnected: !!user.slackAccessToken,
+      avatarUrl: user.avatarUrl || user.avatar_url,
+      slackConnected: Boolean(user.slackAccessToken || user.slack_access_token),
     },
   });
 });

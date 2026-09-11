@@ -100,26 +100,52 @@ From project root:
 docker compose up -d
 ```
 
-### Step 3: Run Database Migrations
+### Step 3: Run Both Frontend & Backend Concurrently
+From project root, one command starts everything:
 ```bash
-cd backend
-npx prisma migrate dev --name init
-```
-
-### Step 4: Run Backend & Workers
-```bash
-cd backend
 npm run dev
 ```
-- API Base: `http://localhost:4000`
+- Frontend Dashboard: `http://localhost:3000`
+- Backend REST API: `http://localhost:4000`
 - BullMQ UI: `http://localhost:4000/admin/queues`
 
-### Step 5: Run Frontend
+Or run separately if preferred:
 ```bash
-cd frontend
-npm run dev
+npm run dev:backend   # Starts Express + BullMQ worker on port 4000
+npm run dev:frontend  # Starts Next.js Dashboard on port 3000
 ```
-- Dashboard UI: `http://localhost:3000`
+
+### Step 4: Build for Production
+To build both backend and frontend:
+```bash
+npm run build
+```
+
+---
+
+## 🚀 Deployment Guide
+
+### Frontend (Vercel)
+1. Import the repository into **Vercel**.
+2. Set **Root Directory** to `frontend`.
+3. Framework Preset: **Next.js** (auto-detected).
+4. Add Environment Variable:
+   - `NEXT_PUBLIC_API_URL`: URL of your deployed backend (e.g. `https://your-backend.onrender.com`).
+5. Deploy!
+
+### Backend (Render / Railway / Fly.io / Docker)
+1. Create a new **Web Service** on Render, Railway, or Fly.io.
+2. Set **Root Directory** to `backend`.
+3. Build Command: `npm install && npm run build`
+4. Start Command: `npm start`
+5. Add Environment Variables from `backend/.env.example`:
+   - `DATABASE_URL`: Your PostgreSQL connection string (Neon or Railway)
+   - `REDIS_URL`: Your Redis connection string (Upstash or Redis)
+   - `SESSION_SECRET`: Random 32+ character string
+   - `FRONTEND_URL`: Your Vercel frontend URL (e.g. `https://your-app.vercel.app`)
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: OAuth credentials
+6. Deploy! The Express API and BullMQ worker will run 24/7.
+
 
 ---
 

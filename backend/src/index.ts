@@ -171,8 +171,8 @@ async function start(): Promise<void> {
   await initializeServices();
 
   if (!process.env.VERCEL) {
-    app.listen(config.port, () => {
-      logger.info(`🚀 Server running on http://localhost:${config.port}`);
+    app.listen(config.port, '0.0.0.0', () => {
+      logger.info(`🚀 Server running on port ${config.port} (0.0.0.0)`);
       logger.info(`📊 BullMQ Dashboard: http://localhost:${config.port}/admin/queues`);
       logger.info(`🌍 Frontend: ${config.frontendUrl}`);
       logger.info(`⚙️  Worker concurrency: ${config.worker.concurrency}`);

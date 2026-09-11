@@ -22,18 +22,18 @@ export const config = {
   },
 
   google: {
-    clientId: process.env.GOOGLE_CLIENT_ID || '',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    callbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/auth/google/callback',
+    clientId: (process.env.GOOGLE_CLIENT_ID || '').trim(),
+    clientSecret: (process.env.GOOGLE_CLIENT_SECRET || '').trim(),
+    callbackUrl: (process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/auth/google/callback').trim().replace(/[\r\n]+$/, ''),
   },
 
   slack: {
-    clientId: process.env.SLACK_CLIENT_ID || '',
-    clientSecret: process.env.SLACK_CLIENT_SECRET || '',
-    redirectUri: process.env.SLACK_REDIRECT_URI || 'http://localhost:4000/slack/callback',
+    clientId: (process.env.SLACK_CLIENT_ID || '').trim(),
+    clientSecret: (process.env.SLACK_CLIENT_SECRET || '').trim(),
+    redirectUri: (process.env.SLACK_REDIRECT_URI || 'http://localhost:4000/slack/callback').trim().replace(/[\r\n]+$/, ''),
   },
 
-  frontendUrl: (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, ''),
+  frontendUrl: (process.env.FRONTEND_URL || 'http://localhost:3000').trim().replace(/[\r\n]+$/, '').replace(/\/+$/, ''),
 
   rateLimiting: {
     maxEmailsPerHourPerSender: parseInt(process.env.MAX_EMAILS_PER_HOUR_PER_SENDER || '200'),

@@ -12,6 +12,7 @@ export function setupPassport(): void {
         clientID: config.google.clientId,
         clientSecret: config.google.clientSecret,
         callbackURL: config.google.callbackUrl,
+        proxy: true,
       },
       async (accessToken, refreshToken, profile: Profile, done) => {
         try {

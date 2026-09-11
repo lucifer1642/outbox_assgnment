@@ -33,7 +33,7 @@ export const config = {
     redirectUri: process.env.SLACK_REDIRECT_URI || 'http://localhost:4000/slack/callback',
   },
 
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+  frontendUrl: (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, ''),
 
   rateLimiting: {
     maxEmailsPerHourPerSender: parseInt(process.env.MAX_EMAILS_PER_HOUR_PER_SENDER || '200'),

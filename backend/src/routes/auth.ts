@@ -16,10 +16,29 @@ router.get(
 // Google OAuth callback
 router.get(
   '/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: `${config.frontendUrl}/login?error=auth_failed` }),
-  (req: Request, res: Response) => {
-    // Successful authentication, redirect to dashboard
-    res.redirect(`${config.frontendUrl}/dashboard`);
+  (req: Request, res: Response, next) => {
+    if (req.query.error) {
+      return res.redirect(`${config.frontendUrl}/login?error=${encodeURIComponent(String(req.query.error))}`);
+    }
+    if (!req.query.code) {
+      return res.redirect(`${config.frontendUrl}/login?error=missing_code`);
+    }
+    passport.authenticate('google', (err: any, user: any, info: any) => {
+      if (err) {
+        console.error('Google OAuth callback error:', err);
+        return res.redirect(`${config.frontendUrl}/login?error=oauth_error&message=${encodeURIComponent(err.message || 'error')}`);
+      }
+      if (!user) {
+        return res.redirect(`${config.frontendUrl}/login?error=auth_failed`);
+      }
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          console.error('Session login error:', loginErr);
+          return res.redirect(`${config.frontendUrl}/login?error=session_error`);
+        }
+        return res.redirect(`${config.frontendUrl}/dashboard`);
+      });
+    })(req, res, next);
   }
 );
 

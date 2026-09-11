@@ -50,7 +50,7 @@ export async function scheduleEmailJob(
   scheduledAt: Date
 ): Promise<string> {
   const delay = Math.max(0, scheduledAt.getTime() - Date.now());
-  const jobId = `email:${data.emailJobId}`;
+  const jobId = `email_${data.emailJobId}`;
 
   const job = await emailQueue.add(QUEUE_NAME, data, {
     jobId,

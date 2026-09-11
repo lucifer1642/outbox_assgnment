@@ -9,6 +9,37 @@ try {
   dns.setDefaultResultOrder('ipv4first');
 } catch (_) {}
 
+const resolver = new dns.promises.Resolver();
+try {
+  resolver.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (_) {}
+
+const originalLookup = dns.lookup;
+// @ts-ignore
+dns.lookup = function (hostname: string, options: any, callback?: any) {
+  const cb = typeof options === 'function' ? options : callback;
+  const opts = typeof options === 'function' ? {} : options;
+
+  originalLookup(hostname, opts, (err, address, family) => {
+    if (!err && address) {
+      return cb(null, address, family);
+    }
+    resolver.resolve4(hostname)
+      .then((addresses) => {
+        if (addresses && addresses.length > 0) {
+          if (opts && opts.all) {
+            cb(null, addresses.map((a) => ({ address: a, family: 4 })));
+          } else {
+            cb(null, addresses[0], 4);
+          }
+        } else {
+          cb(err || new Error(`Failed to resolve ${hostname}`), '', 4);
+        }
+      })
+      .catch(() => cb(err || new Error(`Failed to resolve ${hostname}`), '', 4));
+  });
+};
+
 import express from 'express';
 import session from 'express-session';
 import passport from 'passport';

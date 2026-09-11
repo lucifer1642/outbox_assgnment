@@ -1,388 +1,252 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { FullPageLoader } from '@/components/ui/LoadingState';
+import { API_BASE } from '@/lib/api';
+import './landing.css';
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [dispatchedCount, setDispatchedCount] = useState(0);
-  const countRef = useRef<HTMLDivElement>(null);
 
+  // If already authenticated, redirect to dashboard
   useEffect(() => {
     if (!loading && user) {
       router.replace('/dashboard');
     }
   }, [user, loading, router]);
 
-  // Animated Counter (matching concept script)
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const target = 1955;
-
-    if (prefersReducedMotion) {
-      setDispatchedCount(target);
-      return;
+  const handleGoogleLogin = () => {
+    if (user) {
+      router.push('/dashboard');
+    } else {
+      window.location.href = `${API_BASE}/auth/google`;
     }
-
-    let start: number | null = null;
-    const duration = 1200;
-    let animationFrameId: number;
-
-    function step(ts: number) {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setDispatchedCount(Math.round(eased * target));
-      if (p < 1) {
-        animationFrameId = requestAnimationFrame(step);
-      }
-    }
-
-    animationFrameId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
-
-  if (loading) return <FullPageLoader message="Loading ReachInbox…" />;
+  };
 
   return (
-    <>
-      {/* ── Background Mesh & Noise ────────────────────────────── */}
-      <div className="mesh">
-        <div className="blob blob-1"></div>
-        <div className="blob blob-2"></div>
-        <div className="blob blob-3"></div>
-      </div>
-      <div className="noise"></div>
+    <div className="manifest-body">
+      <div className="manifest-frame">
+        {/* Corner Crop Marks */}
+        <span className="crop tl"></span>
+        <span className="crop tr"></span>
+        <span className="crop bl"></span>
+        <span className="crop br"></span>
 
-      {/* ── Sticky Top Navigation ──────────────────────────────── */}
-      <nav>
-        <div className="nav-inner">
-          <Link href="/" className="brand" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="brand-mark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#0b0c10" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="13 2 3 14 11 14 10 22 21 10 13 10 13 2" />
+        {/* Header Strip */}
+        <div className="header-strip">
+          <Link href="/" className="wordmark">
+            <span className="wordmark-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </div>
-            <span className="brand-name">ReachInbox</span>
-            <span className="brand-badge">OUTBOX</span>
+            </span>
+            <span className="wordmark-text">ReachInbox <span>Outbox</span></span>
           </Link>
-
-          <div className="nav-links">
-            <a href="#capabilities">Features</a>
-            <a href="#flow">Architecture</a>
-            <a href="#metrics">Metrics</a>
-          </div>
-
-          <div className="nav-right">
-            <div className="uptime">
+          <div className="header-meta">
+            <span>ref // RI-2026-0091</span>
+            <span className="mdiv"></span>
+            <span className="status">
               <span className="dot"></span>
-              99.99% uptime
-            </div>
-            <Link href="/login" className="btn btn-primary">
-              <span>Launch dashboard</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Hero Section with Flagship Dashboard Preview ──────── */}
-      <header className="hero">
-        <div className="hero-inner wrap">
-          <span className="eyebrow-badge glass">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z" />
-            </svg>
-            BullMQ &amp; Redis outbox infrastructure · v2.4
-          </span>
-
-          <h1>Schedule and send email campaigns reliably, at scale</h1>
-
-          <p className="hero-sub">
-            Sliding-window sender rate limiting, persistent BullMQ queues, and real-time Slack alerts — built for high-volume email workflows.
-          </p>
-
-          <div className="hero-cta">
-            <Link href="/login" className="btn btn-primary" style={{ padding: '12px 22px' }}>
-              <span style={{
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                background: '#fff',
-                color: '#0b0c10',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'var(--font-display)',
-                fontSize: '11px',
-                fontWeight: 700,
-              }}>
-                G
-              </span>
-              <span>Get started with Google</span>
-            </Link>
-
-            <a href="#flow" className="btn btn-ghost" style={{ padding: '12px 22px' }}>
-              <span>View architecture</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 6 15 12 9 18" />
-              </svg>
-            </a>
-          </div>
-
-          <div className="trust-row">
-            <span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              BullMQ Redis queue
-            </span>
-            <span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Sliding-window limiter
-            </span>
-            <span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Slack webhooks
+              operational
             </span>
           </div>
         </div>
 
-        {/* ── Glass Flagship Mockup ────────────────────────────── */}
-        <div className="dash-shell">
-          <div className="dash glass-flagship">
-            <div className="dash-topbar">
-              <div className="dash-topbar-left">
-                <div className="traffic">
-                  <i></i><i></i><i></i>
+        {/* Hero Section */}
+        <div className="hero-grid">
+          {/* Left Column: Headline, Manifest Table, Capabilities */}
+          <div className="hero-left">
+            <div className="eyebrow">Dispatch manifest — enterprise email infrastructure</div>
+
+            <h1 className="headline">
+              Scale cold email dispatch without<br />
+              <span className="dimension">
+                rate-limit bans
+                <span className="bracket"></span>
+              </span>.
+            </h1>
+
+            <p className="lede">
+              Engineered with BullMQ, Redis, PostgreSQL, and Elasticsearch. Guaranteed delivery pacing, automatic reconciliation, and zero credential exposure.
+            </p>
+
+            {/* Manifest Table */}
+            <div className="manifest">
+              <div className="manifest-head">
+                <span className="title">Queue manifest</span>
+                <span className="live">
+                  <span className="dot"></span>
+                  live
+                </span>
+              </div>
+              <div className="manifest-row">
+                <span className="tick"></span>
+                <span className="label">Throttling</span>
+                <span className="value">2000ms delay</span>
+                <span className="note">sliding window</span>
+              </div>
+              <div className="manifest-row">
+                <span className="tick"></span>
+                <span className="label">Concurrency</span>
+                <span className="value">5 workers</span>
+                <span className="note">auto-scaling</span>
+              </div>
+              <div className="manifest-row">
+                <span className="tick"></span>
+                <span className="label">Hourly cap</span>
+                <span className="value">200 / sender</span>
+                <span className="note">domain-safe</span>
+              </div>
+              <div className="manifest-row">
+                <span className="tick"></span>
+                <span className="label">Search engine</span>
+                <span className="value">&lt;15ms query</span>
+                <span className="note">elasticsearch v8</span>
+              </div>
+            </div>
+
+            {/* Capability List */}
+            <div className="capabilities">
+              <div className="cap-row">
+                <span className="cap-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                <div className="cap-text">
+                  <h3>High-throughput scheduler</h3>
+                  <p>BullMQ and Redis powered persistent queues with millisecond dispatch precision.</p>
                 </div>
-                <span className="dash-path">cluster.us-east.reachinbox</span>
               </div>
-              <div className="dash-status">
-                <span><span className="status-dot"></span>Redis live · 2ms</span>
-                <span><span className="status-dot pulse"></span>BullMQ active</span>
-              </div>
-            </div>
-
-            <div className="stat-grid">
-              <div className="stat">
-                <div className="stat-label">Dispatched (24h)</div>
-                <div className="stat-value up" ref={countRef}>
-                  {dispatchedCount.toLocaleString()}
+              <div className="cap-row">
+                <span className="cap-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <circle cx="12" cy="12" r="8" />
+                    <path d="M12 8v4l2.5 2.5" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <div className="cap-text">
+                  <h3>Smart anti-spam throttling</h3>
+                  <p>Configurable hourly rate limits and delay pacing to preserve sender reputation.</p>
                 </div>
-                <div className="stat-sub pos">+14%</div>
               </div>
-              <div className="stat">
-                <div className="stat-label">Pending in queue</div>
-                <div className="stat-value">84 jobs</div>
-                <div className="stat-sub">Scheduled</div>
+              <div className="cap-row">
+                <span className="cap-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <circle cx="10" cy="10" r="6" />
+                    <path d="M19 19l-4.3-4.3" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <div className="cap-text">
+                  <h3>Full-text Elasticsearch</h3>
+                  <p>Sub-second search across campaign subjects, bodies, and recipient archives.</p>
+                </div>
               </div>
-              <div className="stat">
-                <div className="stat-label">Deliverability</div>
-                <div className="stat-value mint">99.98%</div>
-                <div className="stat-sub">0 bounces</div>
-              </div>
-              <div className="stat">
-                <div className="stat-label">Rate-limit window</div>
-                <div className="stat-value">100 / hr</div>
-                <div className="stat-sub">Safe</div>
-              </div>
-            </div>
-
-            <table className="dash-table">
-              <thead>
-                <tr>
-                  <th>Recipient</th>
-                  <th>Subject</th>
-                  <th>Scheduled</th>
-                  <th style={{ textAlign: 'right' }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="mono">alex.chen@stripe.com</td>
-                  <td>Product architecture review</td>
-                  <td className="mono">In 2 mins</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <span className="pill pending"><i></i>Pending</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="mono">sarah.k@figma.com</td>
-                  <td>Enterprise SLA tier</td>
-                  <td className="mono">In 14 mins</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <span className="pill scheduled"><i></i>Scheduled</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="mono">david.m@linear.app</td>
-                  <td>BullMQ outbox scaling</td>
-                  <td className="mono">Just now</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <span className="pill sent"><i></i>Sent</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div className="dash-footer"></div>
-          </div>
-        </div>
-      </header>
-
-      {/* ── Capabilities Section ──────────────────────────────── */}
-      <section id="capabilities">
-        <div className="wrap">
-          <div className="section-head">
-            <div className="eyebrow">Core capabilities</div>
-            <h2>Engineered for zero email drops</h2>
-            <p className="section-sub">Robust outbox primitives protecting your sender reputation.</p>
-          </div>
-
-          <div className="cap-grid">
-            <div className="cap-card glass">
-              <div className="icon-badge v">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <polyline points="12 7 12 12 15.5 14" />
-                </svg>
-              </div>
-              <h3>BullMQ distributed queue</h3>
-              <p>Redis-backed queue orchestration with automatic delayed job timers, retry policies, and concurrency control.</p>
-              <div className="cap-foot">
-                <span className="k">Delayed job buffer</span>
-                <span className="v active">Active</span>
-              </div>
-            </div>
-
-            <div className="cap-card glass">
-              <div className="icon-badge t">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
-                </svg>
-              </div>
-              <h3>Sliding-window limiter</h3>
-              <p>Per-sender hourly rate limiting automatically reschedules burst jobs to prevent email provider spam penalties.</p>
-              <div className="cap-foot">
-                <span className="k">Window size · 3600s</span>
-                <span className="v">Auto-spread</span>
-              </div>
-            </div>
-
-            <div className="cap-card glass">
-              <div className="icon-badge a">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-                </svg>
-              </div>
-              <h3>Instant Slack alerts</h3>
-              <p>Automated webhook alerts trigger instantly whenever queue bottlenecks or rate-limit thresholds occur.</p>
-              <div className="cap-foot">
-                <span className="k">#email-alerts</span>
-                <span className="v link">Webhook live</span>
+              <div className="cap-row">
+                <span className="cap-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <rect x="4" y="5" width="16" height="5" rx="1" />
+                    <rect x="4" y="14" width="16" height="5" rx="1" />
+                  </svg>
+                </span>
+                <div className="cap-text">
+                  <h3>Slack real-time telemetry</h3>
+                  <p>Instant webhooks for completed dispatches, hourly quotas, and error alerts.</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ── Architecture Flow Section ─────────────────────────── */}
-      <section id="flow">
-        <div className="wrap">
-          <div className="section-head">
-            <div className="eyebrow">Architecture flow</div>
-            <h2>How email jobs are processed</h2>
-          </div>
-
-          <div className="flow-wrap">
-            <div className="flow-line"></div>
-            <div className="flow-grid">
-              <div className="flow-step glass">
-                <span className="flow-num">01</span>
-                <div className="flow-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
+          {/* Right Column: Ticket / Sign In */}
+          <div className="hero-right">
+            <div className="ticket">
+              <div className="ticket-top">
+                <span className="stamp-badge">
+                  <span>verified<br />sender</span>
+                </span>
+                <div className="ticket-row">
+                  <span className="ticket-label">boarding pass</span>
+                  <span className="oauth-tag">OAuth 2.0</span>
                 </div>
-                <h4>Ingest &amp; validate</h4>
-                <p>Single forms or CSV batches are validated and recorded to PostgreSQL.</p>
+                <h2>Clear for dispatch</h2>
+                <p className="sub">
+                  Sign in with your authorized Google workspace to access campaign schedules, queues, and real-time telemetry.
+                </p>
+                <button
+                  onClick={handleGoogleLogin}
+                  className="google-btn"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="#fff"
+                      d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.46c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.56-5.17 3.56-8.81z"
+                      opacity=".9"
+                    />
+                    <path
+                      fill="#fff"
+                      d="M12 24c3.24 0 5.96-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.1C3.25 21.3 7.31 24 12 24z"
+                      opacity=".7"
+                    />
+                    <path
+                      fill="#fff"
+                      d="M5.27 14.27a7.2 7.2 0 010-4.54v-3.1H1.27a12 12 0 000 10.74l4-3.1z"
+                      opacity=".55"
+                    />
+                    <path
+                      fill="#fff"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.63l4 3.1C6.22 6.87 8.87 4.75 12 4.75z"
+                    />
+                  </svg>
+                  {user ? 'Open Cluster Dashboard' : 'Continue with Google'}
+                </button>
+                <p className="terms">By continuing, you agree to ReachInbox&apos;s Terms of Service and Privacy Policy.</p>
               </div>
 
-              <div className="flow-step glass">
-                <span className="flow-num">02</span>
-                <div className="flow-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                    <polyline points="2 17 12 22 22 17" />
-                    <polyline points="2 12 12 17 22 12" />
-                  </svg>
-                </div>
-                <h4>BullMQ buffer</h4>
-                <p>Jobs are enqueued into Redis with delay offsets and automatic retry math.</p>
-              </div>
+              <div className="perforation"></div>
 
-              <div className="flow-step glass">
-                <span className="flow-num">03</span>
-                <div className="flow-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
-                  </svg>
+              <div className="ticket-stub">
+                <div className="barcode"></div>
+                <div className="tracking">RI-OUTBOX-778241</div>
+                <div className="trust-row">
+                  <span className="trust-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Zero secrets
+                  </span>
+                  <span className="trust-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    TLS 1.3
+                  </span>
+                  <span className="trust-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Direct OAuth
+                  </span>
                 </div>
-                <h4>Rate limiter guard</h4>
-                <p>Worker verifies the hourly token bucket and reschedules jobs safely if saturated.</p>
-              </div>
-
-              <div className="flow-step glass">
-                <span className="flow-num">04</span>
-                <div className="flow-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-                  </svg>
-                </div>
-                <h4>Dispatch &amp; Slack</h4>
-                <p>Emails are dispatched via SMTP with real-time Slack status webhooks.</p>
               </div>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* ── Metrics Strip Section ─────────────────────────────── */}
-      <section id="metrics" style={{ paddingTop: 0 }}>
-        <div className="wrap">
-          <div className="metrics-strip glass">
-            <div className="metric-cell">
-              <div className="metric-value">99.99%</div>
-              <div className="metric-label">System uptime</div>
-            </div>
-            <div className="metric-cell">
-              <div className="metric-value">0ms</div>
-              <div className="metric-label">Queue lag</div>
-            </div>
-            <div className="metric-cell">
-              <div className="metric-value">100/hr</div>
-              <div className="metric-label">Per-sender rate limit</div>
-            </div>
+        {/* Footer Strip */}
+        <div className="footer-strip">
+          <span>© 2026 ReachInbox Outbox System — production deployment</span>
+          <div className="stack-list">
+            <span>BullMQ 5.7</span>
+            <span className="sep"></span>
+            <span>Elasticsearch 8.11</span>
+            <span className="sep"></span>
+            <span>PostgreSQL 15</span>
           </div>
         </div>
-      </section>
-
-      {/* ── Footer ────────────────────────────────────────────── */}
-      <footer>ReachInbox Outbox — Production-Grade Email Infrastructure</footer>
-    </>
+      </div>
+    </div>
   );
 }

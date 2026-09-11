@@ -34,11 +34,13 @@ export function ComposeForm({ onClose, onSuccess }: ComposeFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [recipients, setRecipients] = useState<string[]>([]);
+  const [manualRecipients, setManualRecipients] = useState('');
   const [csvSummary, setCsvSummary] = useState<{ total: number; valid: number; invalid: number } | null>(null);
   const [parsingCsv, setParsingCsv] = useState(false);
   const [csvError, setCsvError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const defaultStartTime = new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16);
 
@@ -102,7 +104,7 @@ export function ComposeForm({ onClose, onSuccess }: ComposeFormProps) {
   /* ── Close / Discard ───────────────────────────────────── */
 
   const handleClose = () => {
-    if (isDirty || recipients.length > 0) {
+    if (isDirty || recipients.length > 0 || manualRecipients.trim()) {
       if (window.confirm('Discard this campaign draft?')) onClose();
     } else {
       onClose();
@@ -111,38 +113,55 @@ export function ComposeForm({ onClose, onSuccess }: ComposeFormProps) {
 
   /* ── Submit ────────────────────────────────────────────── */
 
-  const onSubmit = (data: ComposeEmailFormData) => {
+  const onSubmit = async (data: ComposeEmailFormData) => {
     setSubmitError(null);
-    if (recipients.length === 0) {
-      setSubmitError('Please upload a CSV file with at least one recipient email.');
+
+    const emailList = [...recipients];
+    if (manualRecipients.trim()) {
+      const parsed = manualRecipients
+        .split(/[\s,;]+/)
+        .map((e) => e.trim().toLowerCase())
+        .filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+      for (const item of parsed) {
+        if (!emailList.includes(item)) emailList.push(item);
+      }
+    }
+
+    if (emailList.length === 0) {
+      setSubmitError('Please enter at least one recipient email address or upload a CSV file.');
       return;
     }
 
-    scheduleMutation.mutate(
-      {
+    setIsSubmitting(true);
+    try {
+      const res = await scheduleMutation.mutateAsync({
         subject: data.subject,
         body: data.body,
-        recipients,
+        recipients: emailList,
         senderEmail: data.senderEmail,
         senderName: data.senderName,
         startTime: new Date(data.startTime).toISOString(),
-        delayBetweenEmailsMs: data.delaySeconds * 1000,
-        hourlyLimit: data.hourlyLimit,
-      },
-      {
-        onSuccess: (res) => {
-          showToast('success', `Campaign scheduled — ${res.scheduledCount} emails queued`);
-          onSuccess();
-          onClose();
-        },
-        onError: (err: any) => {
-          setSubmitError(err.response?.data?.error || 'Failed to schedule campaign.');
-        },
-      }
-    );
-  };
+        delayBetweenEmailsMs: Math.max(1000, Number(data.delaySeconds) * 1000),
+        hourlyLimit: Math.max(1, Number(data.hourlyLimit)),
+      });
 
-  const isSubmitting = scheduleMutation.isPending;
+      showToast('success', `Campaign scheduled — ${res?.scheduledCount ?? emailList.length} emails queued`);
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      console.error('Schedule campaign failed:', err);
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        (err.code === 'ECONNABORTED' ? 'Request timed out waiting for server. Please try again.' : null) ||
+        err.message ||
+        'Failed to schedule campaign.';
+      setSubmitError(msg);
+      showToast('error', msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <motion.div
@@ -423,6 +442,29 @@ export function ComposeForm({ onClose, onSuccess }: ComposeFormProps) {
                   </p>
                 </div>
               )}
+            </div>
+
+            {/* Manual recipient fallback */}
+            <div style={{ marginTop: '8px' }}>
+              <input
+                type="text"
+                value={manualRecipients}
+                onChange={(e) => setManualRecipients(e.target.value)}
+                disabled={isSubmitting}
+                placeholder="Or enter recipient emails (comma/space-separated, e.g. alex@company.com)..."
+                style={{
+                  width: '100%',
+                  background: 'var(--panel-raised, #111318)',
+                  border: '1px solid var(--border, #1c2027)',
+                  borderRadius: '8px',
+                  padding: '9px 12px',
+                  fontSize: '12.5px',
+                  color: 'var(--text, #e8eaed)',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+                className="focus:border-[#ff9d4d] transition-colors"
+              />
             </div>
           </div>
 
